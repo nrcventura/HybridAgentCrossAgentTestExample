@@ -50,13 +50,10 @@ namespace HybridAgentCrossAgentTestsApp
 			switch (operation)
 			{
 				case { Command: "DoWorkInSpan" }:
-					var spanKind = operation.Parameters!["spanKind"] switch
-					{
-						"Internal" => ActivityKind.Internal,
-						"Client" => ActivityKind.Client,
-						_ => throw new NotImplementedException(),
-					};
-					return (Action work) => OpenTelemetryOperations.DoWorkInSpan(spanKind, work);
+					return (Action work) => OpenTelemetryOperations.DoWorkInSpan(GetSpanKindForOperation(operation), work);
+
+				case { Command: "DoWorkInSpanWithRemoteParent" }:
+					return (Action work) => OpenTelemetryOperations.DoWorkInSpanWithRemoteParent(GetSpanKindForOperation(operation), work);
 
 				case { Command: "DoWorkInTransaction" }:
 					var transactionName = operation.Parameters!["transactionName"] as string;
@@ -88,6 +85,17 @@ namespace HybridAgentCrossAgentTestsApp
 				default:
 					throw new Exception($"{operation.Command} is not supported.");
 			}
+		}
+
+		private static ActivityKind GetSpanKindForOperation(Operation operation)
+		{
+			return operation.Parameters!["spanKind"] switch
+			{
+				"Internal" => ActivityKind.Internal,
+				"Client" => ActivityKind.Client,
+				"Server" => ActivityKind.Server,
+				_ => throw new NotImplementedException(),
+			};
 		}
 
 		private static Action GetActionForAssertion(Assertion assertion, int nestedLevel)

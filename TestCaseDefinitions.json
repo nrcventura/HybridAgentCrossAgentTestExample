@@ -528,6 +528,66 @@
         }
       ]
     }
+  },
+
+  {
+    "testDescription": "Starting transaction tests",
+
+    "operations": [
+      {
+        "command": "DoWorkInSpan",
+        "parameters": {
+          "spanName": "Foo",
+          "spanKind": "Server"
+        }
+      },
+      {
+        "command": "DoWorkInSpanWithRemoteParent",
+        "parameters": {
+          "spanName": "Bar",
+          "spanKind": "Server"
+        }
+      },
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Baz"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpanWithRemoteParent",
+            "parameters": {
+              "spanName": "EdgeCase",
+              "spanKind": "Server"
+            }
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        },
+        {
+          "name": "Bar"
+        },
+        {
+          "name": "Baz"
+        }
+      ],
+      "spans": [
+        {
+          "name": "EdgeCase",
+          "parentName": "Baz"
+        },
+        {
+          "name": "Baz",
+          "entryPoint": true
+        }
+      ]
+    }
   }
 
 ]

@@ -18,6 +18,14 @@ namespace HybridAgentCrossAgentTestsApp
 			work();
 		}
 
+		public static void DoWorkInSpanWithRemoteParent(ActivityKind activityKind, Action work)
+		{
+			var parentContext = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded, isRemote: true);
+			using var activity = TestAppActivitySource.StartActivity("DoWorkInSpan", activityKind, parentContext);
+
+			work();
+		}
+
 		public static void AddAttributeToCurrentSpan(string key, object value, Action work)
 		{
 			Activity.Current?.AddTag(key, value);
