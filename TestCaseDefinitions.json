@@ -245,6 +245,52 @@
         }
       ]
     }
+  },
+
+  {
+    "testDescription": "OpenTelemetry API can record errors",
+
+    "operations": [
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Foo"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "Bar",
+              "spanKind": "Internal"
+            },
+            "childOperations": [
+              {
+                "command": "RecordExceptionOnSpan",
+                "parameters": {
+                  "errorMessage": "Test exception message"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": [
+        {
+          "name": "Bar",
+          "attributes": {
+            "error.message": "Test exception message"
+          }
+        }
+      ]
+    }
   }
 
 ]

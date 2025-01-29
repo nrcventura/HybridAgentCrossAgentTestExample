@@ -41,5 +41,12 @@ namespace HybridAgentCrossAgentTestsApp
 		{
 			return Activity.Current!.SpanId.ToString();
 		}
+
+		public static void RecordExceptionOnSpan(string errorMessage, Action work)
+		{
+			Activity.Current?.AddException(new Exception(errorMessage));
+
+			work();
+		}
 	}
 }

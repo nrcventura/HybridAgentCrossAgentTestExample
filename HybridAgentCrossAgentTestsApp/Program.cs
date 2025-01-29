@@ -70,6 +70,10 @@ namespace HybridAgentCrossAgentTestsApp
 					var value = operation.Parameters!["value"];
 					return (Action work) => OpenTelemetryOperations.AddAttributeToCurrentSpan(name!, value, work);
 
+				case { Command: "RecordExceptionOnSpan" }:
+					var errorMessage = operation.Parameters!["errorMessage"] as string;
+					return (Action work) => OpenTelemetryOperations.RecordExceptionOnSpan(errorMessage!, work);
+
 				default:
 					throw new Exception($"{operation.Command} is not supported.");
 			}

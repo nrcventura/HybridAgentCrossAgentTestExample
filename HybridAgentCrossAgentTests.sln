@@ -5,11 +5,6 @@ VisualStudioVersion = 17.12.35521.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridAgentCrossAgentTestsApp", "HybridAgentCrossAgentTestsApp\HybridAgentCrossAgentTestsApp.csproj", "{70695132-5B69-4F45-90BB-F3BD6194D07E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedFiles", "SharedFiles", "{DE6473F8-D9FE-440A-9ED0-0AF367220EEF}"
-	ProjectSection(SolutionItems) = preProject
-		TestCaseDefinitions.json = TestCaseDefinitions.json
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
