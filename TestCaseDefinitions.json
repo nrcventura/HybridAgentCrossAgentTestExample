@@ -291,6 +291,243 @@
         }
       ]
     }
+  },
+
+  {
+    "testDescription": "OpenTelemetry API and New Relic API can inject outbound trace context",
+
+    "operations": [
+      {
+        "command": "DoWorkInTransaction",
+        "parameters": {
+          "transactionName": "Foo"
+        },
+        "childOperations": [
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "OTelSpan1",
+              "spanKind": "Client"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url1"
+                },
+                "childOperations": [
+                  {
+                    "command": "OTelInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "command": "DoWorkInSegment",
+            "parameters": {
+              "segmentName": "segment1"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url2"
+                },
+                "childOperations": [
+                  {
+                    "command": "OTelInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "command": "DoWorkInSpan",
+            "parameters": {
+              "spanName": "OTelSpan1",
+              "spanKind": "Client"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url4"
+                },
+                "childOperations": [
+                  {
+                    "command": "NRInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "command": "DoWorkInSegment",
+            "parameters": {
+              "segmentName": "segment1"
+            },
+            "childOperations": [
+              {
+                "command": "SimulateExternalCall",
+                "parameters": {
+                  "url": "url4"
+                },
+                "childOperations": [
+                  {
+                    "command": "NRInjectHeaders",
+                    "assertions": [
+                      {
+                        "description": "Correct traceId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.traceId",
+                            "right": "currentTransaction.traceId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct spanId was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.spanId",
+                            "right": "currentSegment.spanId"
+                          }
+                        }
+                      },
+                      {
+                        "description": "Correct sampled flag was injected",
+                        "rule": {
+                          "operator": "Equals",
+                          "parameters": {
+                            "left": "injected.sampled",
+                            "right": "currentTransaction.sampled"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": [
+        {
+          "name": "Bar",
+          "attributes": {
+            "error.message": "Test exception message"
+          }
+        }
+      ]
+    }
   }
 
 ]

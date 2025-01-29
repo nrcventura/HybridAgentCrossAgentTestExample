@@ -48,5 +48,16 @@ namespace HybridAgentCrossAgentTestsApp
 
 			work();
 		}
+
+		public static void InjectHeaders(Action work)
+		{
+			var externalCall = SimulatedOperations.GetCurrentExternalCall()!;
+
+			var otelPropagator = DistributedContextPropagator.Current;
+
+			otelPropagator.Inject(Activity.Current, externalCall, (object? call, string headerName, string headerValue) => ((ExternalCallLibrary)call!).Headers[headerName] = headerValue);
+
+			work();
+		}
 	}
 }

@@ -53,6 +53,7 @@ namespace HybridAgentCrossAgentTestsApp
 					var spanKind = operation.Parameters!["spanKind"] switch
 					{
 						"Internal" => ActivityKind.Internal,
+						"Client" => ActivityKind.Client,
 						_ => throw new NotImplementedException(),
 					};
 					return (Action work) => OpenTelemetryOperations.DoWorkInSpan(spanKind, work);
@@ -73,6 +74,16 @@ namespace HybridAgentCrossAgentTestsApp
 				case { Command: "RecordExceptionOnSpan" }:
 					var errorMessage = operation.Parameters!["errorMessage"] as string;
 					return (Action work) => OpenTelemetryOperations.RecordExceptionOnSpan(errorMessage!, work);
+
+				case { Command: "SimulateExternalCall" }:
+					var url = operation.Parameters!["url"] as string;
+					return (Action work) => SimulatedOperations.ExternalCall(url!, work);
+
+				case { Command: "OTelInjectHeaders" }:
+					return (Action work) => OpenTelemetryOperations.InjectHeaders(work);
+
+				case { Command: "NRInjectHeaders" }:
+					return (Action work) => NewRelicAgentOperations.InjectHeaders(work);
 
 				default:
 					throw new Exception($"{operation.Command} is not supported.");
@@ -139,6 +150,10 @@ namespace HybridAgentCrossAgentTestsApp
 				"currentTransaction.traceId" => NewRelicAgentOperations.GetCurrentTraceId,
 				"currentOTelSpan.spanId" => OpenTelemetryOperations.GetCurrentSpanId,
 				"currentSegment.spanId" => NewRelicAgentOperations.GetCurrentSpanId,
+				"currentTransaction.sampled" => () => NewRelicAgentOperations.GetCurrentIsSampledFlag(),
+				"injected.traceId" => SimulatedOperations.GetInjectedTraceId,
+				"injected.spanId" => SimulatedOperations.GetInjectedSpanId,
+				"injected.sampled" => () => SimulatedOperations.GetInjectedSampledFlag(),
 				_ => throw new Exception($"{objectName} is not supported.")
 			};
 		}

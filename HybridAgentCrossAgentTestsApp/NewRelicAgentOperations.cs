@@ -29,16 +29,30 @@ namespace HybridAgentCrossAgentTestsApp
 			// This is a no-op for now.
 		}
 
-		internal static object GetCurrentTraceId()
+		public static object GetCurrentTraceId()
 		{
-			// The .net agent public API does not provide a way to get the current trace id.
-			return "placeholder";
+			return NewRelic.Api.Agent.NewRelic.GetAgent().TraceMetadata.TraceId;
 		}
 
-		internal static object GetCurrentSpanId()
+		public static object GetCurrentSpanId()
 		{
-			// The .net agent public API does not provide a way to get the current span id.
-			return "placeholder";
+			return NewRelic.Api.Agent.NewRelic.GetAgent().TraceMetadata.SpanId;
+		}
+
+		public static bool GetCurrentIsSampledFlag()
+		{
+			return NewRelic.Api.Agent.NewRelic.GetAgent().TraceMetadata.IsSampled;
+		}
+
+		public static void InjectHeaders(Action work)
+		{
+			var externalCall = SimulatedOperations.GetCurrentExternalCall()!;
+
+			var transactionApi = NewRelic.Api.Agent.NewRelic.GetAgent().CurrentTransaction;
+
+			transactionApi.InsertDistributedTraceHeaders(externalCall, (ExternalCallLibrary call, string headerName, string headerValue) => call.Headers[headerName] = headerValue);
+
+			work();
 		}
 	}
 }
