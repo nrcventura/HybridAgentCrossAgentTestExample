@@ -1,2 +1,36 @@
 # HybridAgentCrossAgentTestExample
-Hybrid agent cross agent tests with an example implementation showing how to interpret them
+
+Hybrid agent cross agent tests with an example implementation showing how to interpret them. The [TestCaseDefinitions.json](./TestCaseDefinitions.json) file defines the tests that should be run. Each test case describes a simulated run of an application along with validations that should occur at different points in time during the running of the simulated application and/or after the agent harvest cycle.
+
+## How to interpret the test cases.
+
+At the top level, the test cases file contains an array of test case definitions. Each test case definition has the following structure.
+
+* `testDescription` field - Contains a brief description of the purpose of the test.
+* `operations` field - Contains a tree structure that describes the things to run within the simulated application.
+* `agentOutput` field (optional) - Contains a collection of different agent payloads to verify.
+
+### Operations
+
+Operations represent the actions to take within a simulated run of an application. An operation can contain simulated application logic, New Relic or OpenTelemetry api interactions, and/or things to validate during the operation. Operations have the following structure.
+
+* `command` field - The name of the simulated action to take. There is a fixed set of commands that can be run and each command has its own rules for evaluating the parameters collection.
+* `parameters` field - This field is meant to be interpreted as a collection of key value pairs that are specific to the command that should be run.
+* `childOperations` field - The collection of `operations` that should be run before the current operation can complete running. The operation should run before the child operations are run, but the operation should not complete untile the child operations are all complete. This allows us to define a tree structure representing a simulated application run.
+* `assertions` field - The collection of validation rules to run during an operation. These assertions should be performed after an operation's child operations are completed but before the current operation is completed.
+
+#### Commands
+
+* `DoWorkInSpan` - Supports two parameters `spanKind` that corresponds to the [kind](https://opentelemetry.io/docs/specs/otel/trace/api/#spankind) of the span to be created using the OpenTelemetry API, and `spanName` which defines the name of the span. This command creates and starts an OpenTelemetry span before running any child operations or assertions. The created span should end when this operation completes.
+* `DoWorkInSpanWithRemoteParent` - Supports two parameters `spanKind` that corresponds to the [kind](https://opentelemetry.io/docs/specs/otel/trace/api/#spankind) of the span to be created using the OpenTelemetry API, and `spanName` which defines the name of the span. This command creates and starts an OpenTelemetry span using a ["remote" SpanContext](https://opentelemetry.io/docs/specs/otel/trace/api/#spancontext) before running any child operations or assertions. The created span should end when this operation completes.
+* `DoWorkInTransaction` - Supports a single parameter `transactionName` that corresponds to the name of the transaction to create using the New Relic agent API to create and start a transaction. This command should create a transaction before running any child operations and assertions. The transaction should end when this operation completes.
+* `DoWorkInSegment` - Supports a single parameter `segmentName` that corresponds to the name of the segment that should be created using the New Relic agent API for creating segments. The segment should be created and started before running any child operations and assertions. The segment should end when this operation completes.
+* `AddOTelAttribute` - Supports two parameters `name` and `value` that correspond to the name and value (respectively) that should be added to the current span using the OpenTelemetry API. This requires getting the current span using the OpenTelemetry API and adding the attribute to that span using the OpenTelemetry API.
+* `RecordExceptionOnSpan` - Supports a single parameter `errorMessage` which contains the error message for the exception that should be recorded on the current span using the OpenTelemetry [RecordException API](https://opentelemetry.io/docs/specs/otel/trace/api/#record-exception). This operation requires getting the current span using the OpenTelemetry API and calling the `RecordException` API on that span. The exception should be recorded before running an child operations and assertions.
+* `SimulateExternalCall` - Supports a single parameter `url` containing the url of the simulated external call. This command needs to create a request header collection that other child commands can use to inject distributed tracing headers into, and allow assertions to validate the request headers.
+* `OTelInjectHeaders` - This command has no parameters, and understands how to interact with the current simulated external call to use the [OpenTelemetry header injection API](https://opentelemetry.io/docs/specs/otel/context/api-propagators/#inject) to insert the W3C trace context headers.
+* `NRInjectHeaders` - This command has no parameters, and understands how to interact with the current simulated external call to use the New Relic distributed tracing API to insert the W3C trace context headers.
+
+#### Assertions
+
+### Agent Output
