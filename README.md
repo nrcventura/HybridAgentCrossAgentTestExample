@@ -33,4 +33,26 @@ Operations represent the actions to take within a simulated run of an applicatio
 
 #### Assertions
 
+Each assertion contains the following information.
+
+* `description` field - Contains an explanation of what is being validated.
+* `rule` field - Contains object that defines the validation rule. Each validation rule includes an `operator` field containing the name of the validation rule and a `parameters` collection containing the things that the `operator` should act on.
+
+##### Rules
+
+Each rule has their own set of parameters.
+
+The `NotValid` rule has a single parameter named `object`. The object parameter contains a string that describes which `object` should be checked to determine if it is valid. Two of the supportted objects are `currentOTelSpan` and `currentTransaction` which represent the current OpenTelemetry span and current New Relic transaction respectively. The logic for determining the validity of these objects will vary from language. In some cases `null`/`nil` values represent that the object is not valid. In other cases, there is a no-op instance of an object that means the object is not valid.
+
+The `Equals` rule represents an equality comparison between the objects represented by the `left` and `right` parameters. Here are the comparable objects.
+
+* `currentOTelSpan.traceId` - The trace id defined on the current OpenTelemetry span.
+* `currentTransaction.traceId` - The trace id defined on the current New Relic transaction.
+* `currentOTelSpan.spanId` - The span id defined on the current OpenTelemetry span.
+* `currentSegment.spanId` - The span id defined on the current New Relic segment (or the equivalent New Relic span depending on the agent's data model).
+* `currentTransaction.sampled` - The sampled flag on the current New Relic transaction.
+* `injected.traceId` - The trace id header value extracted from the simulated external call.
+* `injected.spanId` - The span id header value extracted from the simulated external call.
+* `injected.sampled` - The sampled flag header value extracted from the simulated external call.
+
 ### Agent Output
