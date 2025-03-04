@@ -55,9 +55,11 @@ namespace HybridAgentCrossAgentTestsApp
 				case { Command: "DoWorkInSpanWithRemoteParent" }:
 					return (Action work) => OpenTelemetryOperations.DoWorkInSpanWithRemoteParent(GetSpanKindForOperation(operation), work);
 
+				case { Command: "DoWorkInSpanWithInboundContext" }:
+					return (Action work) => OpenTelemetryOperations.DoWorkInSpanWithInboundContext(GetSpanKindForOperation(operation), GetInboundContextForOperation(operation), work);
+
 				case { Command: "DoWorkInTransaction" }:
-					var transactionName = operation.Parameters!["transactionName"] as string;
-					return (Action work) => NewRelicAgentOperations.DoWorkInTransaction(transactionName!, work);
+					return (Action work) => NewRelicAgentOperations.DoWorkInTransaction(GetTransactionNameForOperation(operation), work);
 
 				case { Command: "DoWorkInSegment" }:
 					var segmentName = operation.Parameters!["segmentName"] as string;
@@ -98,6 +100,27 @@ namespace HybridAgentCrossAgentTestsApp
 			};
 		}
 
+		private static InboundContext GetInboundContextForOperation(Operation operation)
+		{
+			return new InboundContext
+			{
+				TraceId = (string)operation.Parameters!["traceIdInHeader"],
+				SpanId = (string)operation.Parameters!["spanIdInHeader"],
+				Sampled = operation.Parameters!["sampledFlagInHeader"] switch
+				{
+					"0" => false,
+					"1" => true,
+					string s => bool.Parse(s),
+					_ => throw new NotImplementedException(),
+				},
+			};
+		}
+
+		private static string GetTransactionNameForOperation(Operation operation)
+		{
+			return (string)operation.Parameters!["transactionName"];
+		}
+
 		private static Action GetActionForAssertion(Assertion assertion, int nestedLevel)
 		{
 			List<Action> childActions = new() {
@@ -130,6 +153,19 @@ namespace HybridAgentCrossAgentTestsApp
 						if (!left.Equals(right))
 						{
 							throw new Exception($"{left} does not equal {right}");
+						}
+					});
+					break;
+				case { Operator: "Matches" }:
+					var objectName = (string)assertion.Rule!.Parameters!["object"];
+					var objectGetter = GetGetterForObject(objectName);
+					var expectedValue = (string)assertion.Rule!.Parameters!["value"];
+					childActions.Add(() =>
+					{
+						var actualValue = (string)objectGetter();
+						if (!string.Equals(actualValue, expectedValue, StringComparison.OrdinalIgnoreCase))
+						{
+							throw new Exception($"{actualValue} does not match {expectedValue}");
 						}
 					});
 					break;

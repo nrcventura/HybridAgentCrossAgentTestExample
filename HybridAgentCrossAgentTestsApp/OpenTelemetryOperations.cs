@@ -26,6 +26,50 @@ namespace HybridAgentCrossAgentTestsApp
 			work();
 		}
 
+		public static void DoWorkInSpanWithInboundContext(ActivityKind activityKind, InboundContext inboundContext, Action work)
+		{
+			var parentContext = GetActivityContextFromInboundContext(inboundContext);
+			using var activity = TestAppActivitySource.StartActivity("DoWorkInSpan", activityKind, parentContext);
+
+			work();
+		}
+
+		private static ActivityContext GetActivityContextFromInboundContext(InboundContext inboundContext)
+		{
+			var otelPropagator = DistributedContextPropagator.Current;
+			otelPropagator.ExtractTraceIdAndState(inboundContext, (object? carrier, string fieldName, out string? fieldValue, out IEnumerable<string>? fieldValues) =>
+			{
+				if (carrier == null)
+				{
+					fieldValue = null;
+					fieldValues = null;
+					return;
+				}
+
+				InboundContext typedCarrier = (InboundContext)carrier;
+				switch (fieldName.ToLower())
+				{
+					case "traceparent":
+						fieldValue = typedCarrier.GetTraceParentHeader();
+						break;
+					case "tracestate":
+						fieldValue = typedCarrier.GetTraceStateHeader();
+						break;
+					default:
+						fieldValue = null;
+						break;
+				}
+
+				fieldValues = null;
+			}, out string? traceParent, out string? traceState);
+
+			if (!ActivityContext.TryParse(traceParent, traceState, isRemote: true, out ActivityContext context))
+			{
+				throw new Exception("Failed to parse traceparent and tracestate from inbound context.");
+			}
+			return context;
+		}
+
 		public static void AddAttributeToCurrentSpan(string key, object value, Action work)
 		{
 			Activity.Current?.AddTag(key, value);

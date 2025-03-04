@@ -1,4 +1,6 @@
 ﻿
+using System.Diagnostics;
+
 namespace HybridAgentCrossAgentTestsApp
 {
 	public class SimulatedOperations
@@ -60,5 +62,23 @@ namespace HybridAgentCrossAgentTestsApp
 	public class ExternalCallLibrary
 	{
 		public IDictionary<string, string> Headers = new Dictionary<string, string>();
+	}
+
+	public class InboundContext
+	{
+		public string TraceId { get; set; } = string.Empty;
+		public string SpanId { get; set; } = string.Empty;
+		public bool Sampled { get; set; }
+
+		public string GetTraceParentHeader()
+		{
+			return $"00-{TraceId}-{SpanId}-{(Sampled ? "01" : "00")}";
+		}
+
+		public string GetTraceStateHeader()
+		{
+			var sampledString = Sampled ? "0" : "1";
+			return $"1@nr=0-0-1-123456-{SpanId}-e8b91a159289ff74-{sampledString}-{sampledString}.23456-1518469636035";
+		}
 	}
 }
